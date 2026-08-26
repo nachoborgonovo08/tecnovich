@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Reservas - Gestión de Materiales</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #4F46E5;
+    --indigo-light: #EEF2FF;
+    --indigo-mid: #6366F1;
+    --indigo-dark: #3730A3;
+    --green: #16A34A;
+    --green-light: #DCFCE7;
+    --orange: #EA580C;
+    --orange-light: #FFEDD5;
+    --red: #DC2626;
+    --red-light: #FEE2E2;
+    --text-dark: #0F172A;
+    --text-mid: #475569;
+    --text-light: #94A3B8;
+    --bg: #F8FAFC;
+    --surface: #ffffff;
+    --border: #E2E8F0;
+    --border-soft: #F1F5F9;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 1px 3px rgba(15,23,42,0.04), 0 4px 14px rgba(15,23,42,0.06);
+    --shadow-lg: 0 4px 12px rgba(15,23,42,0.06), 0 20px 40px rgba(15,23,42,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-dark);
+    min-height: 100vh;
+  }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3730a3 0%, #5B4FE9 50%, #818cf8 100%);
+    padding: 20px;
+  }
+
+  #login-screen.hidden { display: none; }
+
+  .login-box {
+    background: white;
+    border-radius: 20px;
+    padding: 48px 44px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 32px 80px rgba(15,23,42,0.25);
+    animation: fadeUp 0.5s ease both;
+    border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .login-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    }
+
+  .login-icon img{
+    width: 100px; height: 100px;
+    background: var(--indigo);
+    border-top-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border: 8px solid var(--indigo-mid);
+  }
+
+  .login-logo h1 { font-size: 22px; font-weight: 700; text-align: center; letter-spacing: -0.02em; }
+  .login-logo p { font-size: 13px; color: var(--text-light); font-weight: 500; }
+
+  .login-field { margin-bottom: 16px; }
+  .login-field label { font-size: 13px; font-weight: 600; color: var(--text-mid); display: block; margin-bottom: 6px; }
+
+  .login-field input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 9px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-dark);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .login-field input:focus {
+    border-color: var(--indigo);
+    box-shadow: 0 0 0 3px rgba(91,79,233,0.12);
+  }
+
+  .login-error {
+    background: #FEE2E2;
+    color: #DC2626;
+    font-size: 13px;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .login-error.show { display: block; }
+
+  .btn-login {
+    width: 100%;
+    background: var(--indigo);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn-login:hover { background: var(--indigo-mid); }
+  .btn-login:active { transform: scale(0.98); }
+
+  .login-hint {
+    margin-top: 20px;
+    background: var(--indigo-light);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--indigo);
+    line-height: 1.6;
+  }
+
+  /* ── APP (hidden until logged in) ── */
+  #app { display: none; }
+  #app.visible { display: block; }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-icon img{
+    width: 40px; height: 40px;
+    background: var(--indigo);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 18px;
+    border: 2px solid var(--indigo);
+  }
+
+  .brand-text h1 { font-size: 16px; font-weight: 700; color: var(--text-dark); letter-spacing: -0.01em; }
+  .brand-text p { font-size: 12px; color: var(--text-light); font-weight: 500; }
+
+  .nav-user {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+  .user-info svg { color: var(--text-mid); }
+  .user-info .name { font-size: 14px; font-weight: 600; }
+  .user-info .role { font-size: 11px; color: var(--text-light); }
+
+  .btn-salir {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-mid);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  .btn-salir:hover { background: var(--bg); color: var(--text-dark); }
+
+  /* ── TABS ── */
+  .tabs {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-mid);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    color: var(--indigo);
+    border-bottom-color: var(--indigo);
+    font-weight: 600;
+  }
+
+  .tab:hover:not(.active) { color: var(--text-dark); background: var(--border-soft); }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1080px;
+    margin: 36px auto;
+    padding: 0 24px;
+    display: none;
+  }
+  main.active { display: block; }
+
+  .page-title { font-size: 30px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.02em; }
+  .page-sub { font-size: 14px; color: var(--text-mid); margin-bottom: 32px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 24px 26px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+    border: 1px solid var(--border-soft);
+  }
+
+  /* Grid for stat cards */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .stat-grid .card { margin-bottom: 0; }
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .stat-icon.blue { background: var(--indigo); color: white; }
+  .stat-icon.green { background: var(--green); color: white; }
+  .stat-icon.orange { background: var(--orange); color: white; }
+  .stat-icon.indigo-soft { background: var(--indigo-light); color: var(--indigo); }
+
+  .stat-label { font-size: 12px; color: var(--text-mid); font-weight: 600; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--text-dark); font-family: 'DM Mono', monospace; line-height: 1; }
+  .stat-trend { font-size: 11px; color: var(--text-light); margin-top: 4px; font-weight: 500; }
+
+  /* ── SECTION TITLES ── */
+  .section-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    letter-spacing: -0.01em;
+  }
+  .section-title .count-pill {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--indigo);
+    background: var(--indigo-light);
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* stock de las cosas*/
+  .stock-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+    }
+
+    .stock-item:last-child { margin-bottom: 0; }
+
+    .stock-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+
+    .stock-name { font-size: 14px; font-weight: 500; }
+    .stock-count { font-size: 14px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--indigo); }
+
+    .bar-bg {
+    height: 6px;
+    background: var(--indigo-light);
+    border-radius: 99px;
+    overflow: hidden;
+    }
+
+    .bar-fill {
+    height: 100%;
+    background: var(--indigo);
+    border-radius: 99px;
+    width: 100%;
+    animation: fillBar 0.8s ease forwards;
+    }
+
+  @keyframes fillBar {
+    from { width: 0; }
+  }
+
+  /* ── ITEMS DISPONIBLES (anillos circulares) ── */
+  .rings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+
+  .ring-card {
+    background: var(--surface);
+    border: 2.5px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 18px 16px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+  }
+  .ring-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--indigo);
+  }
+
+  .ring-wrap {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 12px;
+  }
+  .ring-svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+  }
+  .ring-track {
+    fill: none;
+    stroke: var(--border-soft);
+    stroke-width: 10;
+  }
+  .ring-progress {
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.8s ease;
+  }
+  .ring-progress.partial { stroke: var(--orange); }
+  .ring-progress.empty   { stroke: var(--red); }
+
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-dark);
+    line-height: 1;
+  }
+  .ring-of {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: 600;
+    margin-top: 3px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .ring-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .ring-pct {
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 10px;
+  }
+  .ring-pct.partial { color: var(--orange); }
+  .ring-pct.empty   { color: var(--red); }
+
+  .ring-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    font-size: 10.5px;
+    color: var(--text-light);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .ring-foot b {
+    color: var(--text-dark);
+    font-family: 'DM Mono', monospace;
+    font-weight: 700;
+    margin-left: 3px;
+  }
+
+  .badge {
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 4px 8px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .badge-disponible { background: var(--green-light); color: var(--green); }
+  .badge-parcial    { background: var(--orange-light); color: var(--orange); }
+  .badge-agotado    { background: var(--red-light); color: var(--red); }
+  .badge-floating {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
+
+  /* ── ESTADÍSTICAS DE USO ── */
+  /* Filtro de selección de item */
+  .chart-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .chart-tab {
+    border: 2px solid var(--border);
+    background: var(--surface);
+    color: var(--text-mid);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chart-tab:hover { border-color: var(--indigo-light); color: var(--text-dark); }
+  .chart-tab.active {
+    background: var(--indigo);
+    border-color: var(--indigo);
+    color: white;
+  }
+
+  /* Gráfico grande de barras semanal */
+  .chart-big {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 14px;
+    margin-bottom: 4px;
+  }
+  .chart-big + .chart-big { margin-bottom: 0; }
+  .y-axis {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: var(--text-light);
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    text-align: right;
+    padding: 4px 0;
+    height: 220px;
+  }
+  .chart-area {
+    position: relative;
+    height: 220px;
+    background:
+      linear-gradient(to top, var(--border-soft) 1px, transparent 1px) 0 0 / 100% 25%;
+    border-bottom: 2px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    padding: 0 4px;
+  }
+  .chart-col {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .chart-bar {
+    width: 100%;
+    max-width: 48px;
+    background: linear-gradient(180deg, var(--indigo-mid), var(--indigo));
+    border-radius: 6px 6px 0 0;
+    position: relative;
+    transition: transform 0.15s, filter 0.15s;
+    animation: barGrow 0.6s ease both;
+  }
+  .chart-bar:hover { transform: translateY(-2px); filter: brightness(1.08); }
+  .chart-bar.today {
+    background: linear-gradient(180deg, var(--green), #16a34a);
+    box-shadow: 0 0 0 3px var(--green-light);
+  }
+  .chart-bar .bar-val {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+  @keyframes barGrow { from { height: 0 !important; } }
+
+  .x-axis {
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+    padding: 0 4px;
+  }
+  .x-axis div {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .x-axis div.today { color: var(--green); font-weight: 700; }
+
+  /* Resumen general arriba del gráfico */
+  .chart-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .summary-box {
+    padding: 12px 14px;
+    background: var(--bg);
+    border-radius: 10px;
+    border-left: 4px solid var(--indigo);
+  }
+  .summary-box.green { border-left-color: var(--green); }
+  .summary-box.orange { border-left-color: var(--orange); }
+  .summary-box .lbl {
+    font-size: 11px;
+    color: var(--text-mid);
+    font-weight: 600;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .summary-box .val {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-dark);
+    line-height: 1;
+  }
+  .summary-box .delta {
+    font-size: 11px;
+    color: var(--green);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .summary-box .delta.down { color: var(--red); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-light);
+    font-size: 14px;
+  }
+
+  /* ── RESERVAS PAGE ── */
+  .reserve-form { display: flex; flex-direction: column; gap: 14px; }
+
+  label { font-size: 13px; font-weight: 600; color: var(--text-mid); display: block; margin-bottom: 5px; }
+
+  select, input[type="date"], input[type="text"] {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-dark);
+    background: white;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  select:focus, input:focus { border-color: var(--indigo); }
+
+  .btn-primary {
+    background: var(--indigo);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    align-self: flex-start;
+  }
+
+  .btn-primary:hover { background: var(--indigo-mid); }
+  .btn-primary:active { transform: scale(0.98); }
+
+  /* ── ANIMATE IN ── */
+  .card {
+    animation: fadeUp 0.35s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:nth-child(2) { animation-delay: 0.06s; }
+  .card:nth-child(3) { animation-delay: 0.12s; }
+  .card:nth-child(4) { animation-delay: 0.18s; }
+  .card:nth-child(5) { animation-delay: 0.24s; }
+
+  /* ── Banner alertas bajo stock ── */
+  .alert-banner {
+    background: var(--orange-light);
+    border: 2px solid var(--orange);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    color: var(--orange);
+    font-weight: 600;
+    font-size: 13.5px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .alert-banner svg { flex-shrink: 0; margin-top: 2px; }
+  .alert-banner .alert-body { flex: 1; }
+  .alert-banner ul { margin: 6px 0 0 18px; font-weight: 500; color: var(--text-dark); }
+  .alert-banner ul li { margin-bottom: 2px; }
+  .alert-banner.critical { background: var(--red-light); border-color: var(--red); color: var(--red); }
+
+  /* ── Mensajes del form ── */
+  .form-error {
+    background: var(--red-light);
+    color: var(--red);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .form-ok {
+    background: var(--green-light);
+    color: var(--green);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ── Lista de "Mis Reservas Activas" ── */
+  .resv-item {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  .resv-item:last-child { margin-bottom: 0; }
+  .resv-ico {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--indigo-light);
+    color: var(--indigo);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .resv-info { min-width: 0; }
+  .resv-info .name { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+  .resv-info .meta { font-size: 12px; color: var(--text-mid); margin-top: 2px; }
+  .resv-info .meta b { color: var(--text-dark); font-family: 'DM Mono', monospace; }
+  .btn-cancel {
+    background: var(--red-light);
+    color: var(--red);
+    border: none;
+    border-radius: 7px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-cancel:hover { background: #fecaca; }
+
+  /* ── Panel del Coordinador ── */
+  .admin-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--bg);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .admin-row:last-child { margin-bottom: 0; }
+  .admin-row .nm { font-size: 14px; font-weight: 600; }
+  .admin-row .free-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-mid);
+    background: var(--surface);
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .admin-row input[type="number"] {
+    width: 80px;
+    padding: 6px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    text-align: center;
+  }
+  .admin-row input[type="number"]:focus { border-color: var(--indigo); outline: none; }
+
+  /* ─────────────────────────────────── */
+  /* ──        RESPONSIVE MOBILE       ── */
+  /* ─────────────────────────────────── */
+
+  /* Tablet y abajo (≤ 820px) */
+  @media (max-width: 820px) {
+    nav { padding: 0 16px; height: 60px; }
+    .brand-text h1 { font-size: 14px; }
+    .brand-text p  { font-size: 11px; }
+    .brand-icon img { width: 36px; height: 36px; }
+
+    .tabs { padding: 0 12px; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { padding: 14px 12px; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
+
+    main { margin: 20px auto; padding: 0 16px; }
+    .page-title { font-size: 24px; }
+    .page-sub { font-size: 13px; margin-bottom: 22px; }
+
+    .card { padding: 18px 18px; border-radius: 14px; margin-bottom: 14px; }
+    .section-title { font-size: 16px; margin-bottom: 14px; }
+    .stat-value { font-size: 24px; }
+    .stat-icon { width: 42px; height: 42px; }
+  }
+
+  /* Mobile (≤ 600px) */
+  @media (max-width: 600px) {
+    nav { height: 56px; padding: 0 12px; }
+    .nav-user { gap: 8px; }
+    .user-info { padding: 5px 9px; gap: 6px; }
+    .user-info .name { font-size: 12px; }
+    .user-info .role { display: none; }
+    .btn-salir span, .btn-salir { font-size: 13px; padding: 5px 8px; }
+    .btn-salir svg { width: 14px; height: 14px; }
+    .brand-text p { display: none; }
+
+    /* Stat grid: 2 columnas en celu */
+    .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .stat-card { gap: 10px; padding: 14px 14px; }
+    .stat-icon { width: 38px; height: 38px; border-radius: 10px; }
+    .stat-icon svg { width: 18px; height: 18px; }
+    .stat-label { font-size: 10px; }
+    .stat-value { font-size: 20px; }
+    .stat-trend { font-size: 10px; }
+
+    /* Chart tabs con scroll horizontal */
+    .chart-tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin: 0 -18px 16px;
+      padding: 0 18px 4px;
+    }
+    .chart-tabs::-webkit-scrollbar { display: none; }
+    .chart-tab {
+      flex-shrink: 0;
+      font-size: 12px;
+      padding: 6px 11px;
+      border-width: 1.5px;
+    }
+
+    /* Resumen del gráfico: 2x2 grid */
+    .chart-summary {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+    .summary-box { padding: 10px 12px; border-left-width: 3px; }
+    .summary-box .lbl { font-size: 10px; }
+    .summary-box .val { font-size: 17px; }
+    .summary-box .delta { font-size: 10px; margin-top: 3px; }
+
+    /* Gráfico de barras compacto */
+    .chart-big { grid-template-columns: 24px 1fr; gap: 8px; }
+    .y-axis { height: 170px; font-size: 9.5px; }
+    .chart-area {
+      height: 170px;
+      gap: 5px;
+      padding: 0 2px;
+    }
+    .chart-bar { max-width: 36px; border-radius: 5px 5px 0 0; }
+    .chart-bar .bar-val { font-size: 10.5px; top: -18px; }
+    .x-axis { gap: 5px; padding: 0 2px; margin-top: 4px; }
+    .x-axis div { font-size: 10px; }
+
+    /* Rings: 2 columnas, más chicos */
+    .rings-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .ring-card {
+      padding: 16px 12px 12px;
+      border-width: 2px;
+      border-radius: 12px;
+    }
+    .ring-wrap { width: 88px; height: 88px; margin-bottom: 8px; }
+    .ring-num { font-size: 20px; }
+    .ring-of { font-size: 9.5px; }
+    .ring-name { font-size: 12px; min-height: 28px; }
+    .ring-pct { font-size: 11px; margin-bottom: 8px; }
+    .ring-foot { font-size: 9px; padding-top: 8px; }
+    .ring-foot b { font-size: 11px; }
+    .badge-floating { top: 8px; right: 8px; font-size: 9px; padding: 3px 6px; }
+
+    /* Stock list */
+    .stock-name { font-size: 13px; }
+    .stock-count { font-size: 13px; }
+
+    /* Login un poco más compacto */
+    .login-box { padding: 36px 28px; }
+    .login-logo h1 { font-size: 19px; }
+    .login-icon img { width: 84px; height: 84px; }
+  }
+
+  /* Mobile small (≤ 380px) — celu chico */
+  @media (max-width: 380px) {
+    .stat-grid { grid-template-columns: 1fr; }
+    .rings-grid { grid-template-columns: 1fr; }
+    .chart-summary { grid-template-columns: 1fr; }
+    .chart-area { gap: 4px; }
+    .x-axis { gap: 4px; }
+    .chart-bar { max-width: 30px; }
+    .user-info { padding: 4px 7px; }
+    .user-info .name { font-size: 11px; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-icon">
+        <img src="download (20).jpg" alt="logo">
+      </div>
+      <h1>Sistema de Reservas</h1>
+      <p>Gestión de Materiales</p>
+    </div>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="Ej: docente1" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="login-error" id="login-error">Usuario o contraseña incorrectos. Intentá de nuevo.</div>
+    <button class="btn-login" onclick="doLogin()">Ingresar</button>
+    <div class="login-hint">
+      <strong>Usuarios disponibles:</strong><br>
+      docente1 / 1234 &nbsp;·&nbsp; coordinador1 / 1234
+    </div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app">
+
+<!-- ── NAVBAR ── -->
+<nav>
+  <div class="nav-brand">
+    <div class="brand-icon">
+        <img src="download (20).jpg" alt="logo">
+    </div>
+    <div class="brand-text">
+      <h1>Sistema de Reservas</h1>
+      <p>Gestión de Materiales</p>
+    </div>
+  </div>
+
+  <div class="nav-user">
+    <div class="user-info">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      <div>
+        <div class="name" id="nav-nombre">Six Seven</div>
+        <div class="role" id="nav-rol">Docente</div>
+      </div>
+    </div>
+    <button class="btn-salir" onclick="doLogout()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Salir
+    </button>
+  </div>
+</nav>
+
+<!-- ── TABS ── -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('panel')">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Panel Principal
+  </div>
+  <div class="tab" onclick="switchTab('reservas')">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Reservas
+  </div>
+  <div class="tab" onclick="switchTab('stock')">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+    Stock
+  </div>
+</div>
+
+<!-- ── PANEL PRINCIPAL ── -->
+<main id="page-panel" class="active">
+  <div class="page-title">Panel Principal</div>
+  <div class="page-sub" id="welcome-name">Bienvenido/a, Six Seven</div>
+
+  <div class="stat-grid">
+    <div class="card stat-card">
+      <div class="stat-icon blue">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      </div>
+      <div>
+        <div class="stat-label">Materiales Totales</div>
+        <div class="stat-value" id="kpi-total">52</div>
+        <div class="stat-trend" id="kpi-total-sub">5 categorías</div>
+      </div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-icon green">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div>
+        <div class="stat-label">Reservas Activas</div>
+        <div class="stat-value" id="kpi-resv">0</div>
+        <div class="stat-trend" id="kpi-resv-sub">Sin reservas hoy</div>
+      </div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-icon orange">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div>
+        <div class="stat-label">Items Reservados</div>
+        <div class="stat-value" id="kpi-used">0</div>
+        <div class="stat-trend" id="kpi-used-sub">0% del stock</div>
+      </div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-icon indigo-soft">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <div>
+        <div class="stat-label">Items Disponibles</div>
+        <div class="stat-value" id="kpi-free">52</div>
+        <div class="stat-trend" id="kpi-free-sub">100% disponible</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banner de alertas de bajo stock -->
+  <div id="stock-alert" class="alert-banner" hidden></div>
+
+  <div class="card">
+    <div class="section-title">Estadísticas de Uso<span class="count-pill">últimos 7 días</span></div>
+
+    <!-- Tabs para filtrar por item -->
+    <div class="chart-tabs" id="chart-tabs">
+      <button class="chart-tab active" data-item="todos">Todos los items</button>
+      <button class="chart-tab" data-item="portatiles">Computadoras Portátiles</button>
+      <button class="chart-tab" data-item="routers">Routers WiFi</button>
+      <button class="chart-tab" data-item="proyectores">Proyectores</button>
+      <button class="chart-tab" data-item="tallerA">Taller A</button>
+      <button class="chart-tab" data-item="tallerB">Taller B</button>
+    </div>
+
+    <!-- Resumen rápido arriba del gráfico -->
+    <div class="chart-summary">
+      <div class="summary-box">
+        <div class="lbl">Pedidos hoy</div>
+        <div class="val" id="sum-today">22</div>
+        <div class="delta">↗ +18% vs ayer</div>
+      </div>
+      <div class="summary-box green">
+        <div class="lbl">Total semana</div>
+        <div class="val" id="sum-week">133</div>
+        <div class="delta">↗ +12 vs semana pasada</div>
+      </div>
+      <div class="summary-box orange">
+        <div class="lbl">Día con más pedidos</div>
+        <div class="val" id="sum-peak">Jue · 28</div>
+        <div class="delta">Pico de la semana</div>
+      </div>
+      <div class="summary-box">
+        <div class="lbl">Promedio diario</div>
+        <div class="val" id="sum-avg">19</div>
+        <div class="delta">pedidos / día</div>
+      </div>
+    </div>
+
+    <!-- Gráfico de barras grande con eje Y y X -->
+    <div class="chart-big">
+      <div class="y-axis" id="y-axis">
+        <div>0</div><div>8</div><div>15</div><div>23</div><div>30</div>
+      </div>
+      <div class="chart-area" id="chart-area">
+        <div class="chart-col"><div class="chart-bar"      style="height:50%"><span class="bar-val">15</span></div></div>
+        <div class="chart-col"><div class="chart-bar"      style="height:60%"><span class="bar-val">18</span></div></div>
+        <div class="chart-col"><div class="chart-bar"      style="height:73%"><span class="bar-val">22</span></div></div>
+        <div class="chart-col"><div class="chart-bar"      style="height:93%"><span class="bar-val">28</span></div></div>
+        <div class="chart-col"><div class="chart-bar"      style="height:47%"><span class="bar-val">14</span></div></div>
+        <div class="chart-col"><div class="chart-bar"      style="height:47%"><span class="bar-val">14</span></div></div>
+        <div class="chart-col"><div class="chart-bar today" style="height:73%"><span class="bar-val">22</span></div></div>
+      </div>
+    </div>
+    <div class="chart-big">
+      <div></div>
+      <div class="x-axis" id="x-axis">
+        <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div class="today">Hoy</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ── RESERVAS ── -->
+<main id="page-reservas">
+  <div class="page-title">Reservas</div>
+  <div class="page-sub">Gestioná tus reservas de materiales</div>
+
+  <div class="card">
+    <div class="section-title">
+      Items Disponibles
+      <span class="count-pill" id="resv-pill">52 / 52</span>
+    </div>
+    <div class="rings-grid" id="resv-rings"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Mis Reservas Activas<span class="count-pill" id="my-resv-count">0</span></div>
+    <div id="my-resv-list"><div class="empty-state">No hay reservas activas</div></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Nueva Reserva</div>
+    <form class="reserve-form" id="form-reserva" novalidate>
+      <div>
+        <label>Material</label>
+        <select id="f-material" required>
+          <option value="portatiles">Computadoras Portátiles</option>
+          <option value="routers">Routers WiFi</option>
+          <option value="tallerA">Taller de Informática A</option>
+          <option value="tallerB">Taller de Informática B</option>
+          <option value="proyectores">Proyectores</option>
+        </select>
+      </div>
+      <div>
+        <label>Cantidad</label>
+        <input type="number" id="f-cantidad" min="1" value="1" required>
+      </div>
+      <div>
+        <label>Fecha</label>
+        <input type="date" id="f-fecha" required>
+      </div>
+      <div>
+        <label>Observaciones</label>
+        <input type="text" id="f-obs" placeholder="Notas adicionales...">
+      </div>
+      <div id="form-error" class="form-error" hidden></div>
+      <div id="form-ok"    class="form-ok"    hidden></div>
+      <button type="submit" class="btn-primary">Confirmar Reserva</button>
+    </form>
+  </div>
+</main>
+
+<!-- ── STOCK ── -->
+<main id="page-stock">
+  <div class="page-title">Stock</div>
+  <div class="page-sub">Estado actual del inventario de materiales</div>
+
+  <div class="card">
+    <div class="section-title">Inventario Completo<span class="count-pill" id="stock-pill">52 unidades</span></div>
+    <div id="stock-list"></div>
+  </div>
+
+  <!-- Panel del Coordinador (visible solo si rol === 'Coordinador') -->
+  <div class="card admin-only" id="admin-panel" hidden>
+    <div class="section-title">Administración de Inventario <span class="count-pill" style="background:var(--orange-light);color:var(--orange)">Coordinador</span></div>
+    <p class="page-sub" style="margin-bottom:14px">Ajustá la cantidad total de cada material. Los cambios se guardan automáticamente.</p>
+    <div id="admin-list"></div>
+  </div>
+</main>
+
+</div><!-- /#app -->
+
+<script>
+  const USERS = {
+    'docente1':     { pass: '1234', nombre: 'María González', rol: 'Docente' },
+    'coordinador1': { pass: '1234', nombre: 'Carlos Pérez',   rol: 'Coordinador' }
+  };
+
+  /* ── Estado global del inventario ── */
+  const ITEMS = {
+    portatiles:  { name:'Computadoras Portátiles', total:20, footLabel:'En uso',     capacity:null,
+                   icon:'<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>' },
+    routers:     { name:'Routers WiFi',            total:10, footLabel:'En uso',     capacity:null,
+                   icon:'<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>' },
+    proyectores: { name:'Proyectores',             total:8,  footLabel:'En uso',     capacity:null,
+                   icon:'<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>' },
+    tallerA:     { name:'Taller de Informática A', total:1,  footLabel:'Capacidad',  capacity:30,
+                   icon:'<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
+    tallerB:     { name:'Taller de Informática B', total:1,  footLabel:'Capacidad',  capacity:25,
+                   icon:'<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' }
+  };
+
+  const RING_CIRC = 282.74; // 2π·45
+
+  /* ── Persistencia (localStorage) ── */
+  const LS_RESV = 'sr_reservas';
+  const LS_STOCK = 'sr_stock';
+
+  function loadResv() {
+    try { return JSON.parse(localStorage.getItem(LS_RESV)) || []; } catch { return []; }
+  }
+  function saveResv(arr) { localStorage.setItem(LS_RESV, JSON.stringify(arr)); }
+
+  function loadStock() {
+    try {
+      const s = JSON.parse(localStorage.getItem(LS_STOCK));
+      if (s && typeof s === 'object') Object.keys(s).forEach(k => { if (ITEMS[k]) ITEMS[k].total = s[k]; });
+    } catch {}
+  }
+  function saveStock() {
+    const s = {};
+    Object.keys(ITEMS).forEach(k => s[k] = ITEMS[k].total);
+    localStorage.setItem(LS_STOCK, JSON.stringify(s));
+  }
+
+  let RESERVAS = [];
+  let CURRENT_USER = null;
+
+  /* ── Cálculos ── */
+  const todayISO = () => {
+    const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,10);
+  };
+  function activeResvs() { return RESERVAS.filter(r => r.fecha >= todayISO()); }
+  function usedToday(itemKey) {
+    return activeResvs()
+      .filter(r => r.item === itemKey && r.fecha === todayISO())
+      .reduce((s, r) => s + r.cantidad, 0);
+  }
+  function freeOf(itemKey) { return Math.max(0, ITEMS[itemKey].total - usedToday(itemKey)); }
+
+  /* ── Login / Logout ── */
+  function doLogin() {
+    const user = document.getElementById('login-user').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    const err  = document.getElementById('login-error');
+
+    if (USERS[user] && USERS[user].pass === pass) {
+      err.classList.remove('show');
+      const info = USERS[user];
+      CURRENT_USER = { user, ...info };
+      document.getElementById('nav-nombre').textContent   = info.nombre;
+      document.getElementById('nav-rol').textContent      = info.rol;
+      document.getElementById('welcome-name').textContent = 'Bienvenido/a, ' + info.nombre;
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app').classList.add('visible');
+
+      // Mostrar panel de Coordinador si corresponde
+      const admin = document.getElementById('admin-panel');
+      if (info.rol === 'Coordinador') admin.removeAttribute('hidden');
+      else admin.setAttribute('hidden', '');
+
+      refreshAll();
+    } else {
+      err.classList.add('show');
+      document.getElementById('login-pass').value = '';
+      document.getElementById('login-pass').focus();
+    }
+  }
+
+  function doLogout() {
+    CURRENT_USER = null;
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('app').classList.remove('visible');
+    document.getElementById('login-user').value = '';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('admin-panel').setAttribute('hidden', '');
+    switchTab('panel');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('login-pass').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+    document.getElementById('login-user').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('login-pass').focus();
+    });
+
+    // Cargar estado persistido
+    loadStock();
+    RESERVAS = loadResv();
+
+    // Init formulario reserva
+    const f = document.getElementById('form-reserva');
+    if (f) f.addEventListener('submit', submitReserva);
+    const fechaInput = document.getElementById('f-fecha');
+    if (fechaInput) { fechaInput.min = todayISO(); fechaInput.value = todayISO(); }
+
+    // Render inicial (aunque no haya login todavía: para que el panel esté listo)
+    refreshAll();
+  });
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('main').forEach(m => m.classList.remove('active'));
+    const tabs = { panel: 0, reservas: 1, stock: 2 };
+    document.querySelectorAll('.tab')[tabs[name]].classList.add('active');
+    const page = document.getElementById('page-' + name);
+    page.classList.add('active');
+    page.querySelectorAll('.card').forEach((c, i) => {
+      c.style.animation = 'none';
+      c.offsetHeight;
+      c.style.animation = `fadeUp 0.35s ease ${i * 0.06}s both`;
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════ */
+  /* ═══════════   RENDER DEL ESTADO COMPLETO   ═════════════ */
+  /* ═══════════════════════════════════════════════════════ */
+
+  function refreshAll() {
+    renderKPIs();
+    renderRings();
+    renderStockList();
+    renderMyResv();
+    renderAdmin();
+    renderStockAlert();
+  }
+
+  function renderKPIs() {
+    const keys = Object.keys(ITEMS);
+    const total = keys.reduce((s,k)=>s+ITEMS[k].total, 0);
+    const used  = keys.reduce((s,k)=>s+usedToday(k), 0);
+    const free  = total - used;
+    const resvHoy = activeResvs().filter(r => r.fecha === todayISO()).length;
+    const pct = total ? Math.round((used/total)*100) : 0;
+    const pctFree = total ? Math.round((free/total)*100) : 0;
+
+    document.getElementById('kpi-total').textContent = total;
+    document.getElementById('kpi-total-sub').textContent = keys.length + ' categorías';
+    document.getElementById('kpi-resv').textContent  = activeResvs().length;
+    document.getElementById('kpi-resv-sub').textContent = resvHoy ? `${resvHoy} hoy` : 'Sin reservas hoy';
+    document.getElementById('kpi-used').textContent  = used;
+    document.getElementById('kpi-used-sub').textContent = pct + '% del stock';
+    document.getElementById('kpi-free').textContent  = free;
+    document.getElementById('kpi-free-sub').textContent = pctFree + '% disponible';
+  }
+
+  function ringCardHTML(key) {
+    const it = ITEMS[key];
+    const free = freeOf(key);
+    const used = it.total - free;
+    const pct  = it.total ? (free/it.total)*100 : 0;
+    const offset = RING_CIRC * (1 - pct/100);
+    let status='disponible', label='Libre', cls='';
+    if (free === 0)            { status='agotado'; label='Sin stock'; cls='empty'; }
+    else if (pct < 40)         { status='parcial'; label='Bajo';       cls='partial'; }
+    const footRight = it.capacity != null
+        ? `<span>${it.footLabel}<b>${it.capacity}</b></span><span>En uso<b>${used}</b></span>`
+        : `<span>Libres<b>${free}</b></span><span>En uso<b>${used}</b></span>`;
+    return `
+      <div class="ring-card">
+        <span class="badge badge-${status} badge-floating">${label}</span>
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 110 110">
+            <circle class="ring-track" cx="55" cy="55" r="45"/>
+            <circle class="ring-progress ${cls}" cx="55" cy="55" r="45" stroke-dasharray="${RING_CIRC}" stroke-dashoffset="${offset.toFixed(2)}"/>
+          </svg>
+          <div class="ring-center"><div class="ring-num">${free}</div><div class="ring-of">de ${it.total}</div></div>
+        </div>
+        <div class="ring-name">${it.name}</div>
+        <div class="ring-pct ${cls}">${Math.round(pct)}% disponible</div>
+        <div class="ring-foot">${footRight}</div>
+      </div>`;
+  }
+
+  function renderRings() {
+    const cont = document.getElementById('resv-rings');
+    if (!cont) return;
+    cont.innerHTML = Object.keys(ITEMS).map(ringCardHTML).join('');
+    const totalFree = Object.keys(ITEMS).reduce((s,k)=>s+freeOf(k), 0);
+    const total = Object.keys(ITEMS).reduce((s,k)=>s+ITEMS[k].total, 0);
+    document.getElementById('resv-pill').textContent = totalFree + ' / ' + total;
+  }
+
+  function renderStockList() {
+    const cont = document.getElementById('stock-list');
+    if (!cont) return;
+    cont.innerHTML = Object.keys(ITEMS).map(k => {
+      const it = ITEMS[k];
+      const free = freeOf(k);
+      const pct = it.total ? Math.round((free/it.total)*100) : 0;
+      return `
+        <div class="stock-item">
+          <div class="stock-row">
+            <span class="stock-name">${it.name}</span>
+            <span class="stock-count">${free}/${it.total}</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+    }).join('');
+    const total = Object.keys(ITEMS).reduce((s,k)=>s+ITEMS[k].total, 0);
+    document.getElementById('stock-pill').textContent = total + ' unidades';
+  }
+
+  function fmtFecha(iso) {
+    const [y,m,d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function renderMyResv() {
+    const cont = document.getElementById('my-resv-list');
+    if (!cont) return;
+    const me = (CURRENT_USER && CURRENT_USER.user) || '';
+    const mine = activeResvs().filter(r => r.user === me)
+                              .sort((a,b) => a.fecha.localeCompare(b.fecha));
+    document.getElementById('my-resv-count').textContent = mine.length;
+    if (mine.length === 0) {
+      cont.innerHTML = '<div class="empty-state">No hay reservas activas</div>';
+      return;
+    }
+    cont.innerHTML = mine.map(r => {
+      const it = ITEMS[r.item] || { name: r.item, icon: '' };
+      const obs = r.obs ? ` · ${r.obs}` : '';
+      return `
+        <div class="resv-item">
+          <div class="resv-ico">${it.icon}</div>
+          <div class="resv-info">
+            <div class="name">${it.name}</div>
+            <div class="meta">Fecha: <b>${fmtFecha(r.fecha)}</b> · Cantidad: <b>${r.cantidad}</b>${obs}</div>
+          </div>
+          <button class="btn-cancel" data-id="${r.id}">Cancelar</button>
+        </div>`;
+    }).join('');
+    cont.querySelectorAll('.btn-cancel').forEach(b => {
+      b.addEventListener('click', () => cancelResv(b.dataset.id));
+    });
+  }
+
+  function renderAdmin() {
+    const cont = document.getElementById('admin-list');
+    if (!cont) return;
+    cont.innerHTML = Object.keys(ITEMS).map(k => {
+      const it = ITEMS[k];
+      return `
+        <div class="admin-row">
+          <span class="nm">${it.name}</span>
+          <span class="free-count">${freeOf(k)} libres · ${it.total - freeOf(k)} en uso</span>
+          <input type="number" min="0" value="${it.total}" data-key="${k}">
+        </div>`;
+    }).join('');
+    cont.querySelectorAll('input[type="number"]').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const k = inp.dataset.key;
+        const v = Math.max(0, parseInt(inp.value, 10) || 0);
+        const used = ITEMS[k].total - freeOf(k);
+        if (v < used) {
+          alert(`No se puede bajar a ${v}: hay ${used} unidades reservadas hoy.`);
+          inp.value = ITEMS[k].total;
+          return;
+        }
+        ITEMS[k].total = v;
+        saveStock();
+        refreshAll();
+        syncBackend('set_stock', {
+          rol: (CURRENT_USER && CURRENT_USER.rol) || '', item: k, total: v
+        });
+      });
+    });
+  }
+
+  function renderStockAlert() {
+    const banner = document.getElementById('stock-alert');
+    if (!banner) return;
+    const low = Object.keys(ITEMS).filter(k => {
+      const it = ITEMS[k];
+      const pct = it.total ? (freeOf(k)/it.total)*100 : 0;
+      return pct < 40 && it.total > 0;
+    });
+    if (!low.length) { banner.setAttribute('hidden',''); return; }
+    const critical = low.some(k => freeOf(k) === 0);
+    banner.classList.toggle('critical', critical);
+    banner.removeAttribute('hidden');
+    const icon = '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    banner.innerHTML = `${icon}<div class="alert-body"><strong>${critical ? 'Stock agotado' : 'Stock bajo detectado'}</strong> en ${low.length} categoría${low.length>1?'s':''}:<ul>${low.map(k => `<li>${ITEMS[k].name} — ${freeOf(k)} de ${ITEMS[k].total} disponible${freeOf(k)===1?'':'s'}</li>`).join('')}</ul></div>`;
+  }
+
+  /* ═══════════════════════════════════════════════════════ */
+  /* ═══════════   FORMULARIO DE RESERVA       ══════════════ */
+  /* ═══════════════════════════════════════════════════════ */
+
+  function submitReserva(e) {
+    e.preventDefault();
+    const itemKey = document.getElementById('f-material').value;
+    const cant    = parseInt(document.getElementById('f-cantidad').value, 10) || 0;
+    const fecha   = document.getElementById('f-fecha').value;
+    const obs     = document.getElementById('f-obs').value.trim();
+    const errEl   = document.getElementById('form-error');
+    const okEl    = document.getElementById('form-ok');
+    okEl.hidden = true;
+
+    const fail = (msg) => { errEl.textContent = msg; errEl.hidden = false; };
+
+    if (!ITEMS[itemKey])         return fail('Material inválido.');
+    if (!fecha)                  return fail('Tenés que elegir una fecha.');
+    if (fecha < todayISO())      return fail('No se puede reservar en una fecha pasada.');
+    if (cant < 1)                return fail('La cantidad debe ser al menos 1.');
+
+    // Disponibilidad para esa fecha exacta (no hoy)
+    const usedOnDate = RESERVAS.filter(r => r.item === itemKey && r.fecha === fecha)
+                               .reduce((s,r) => s + r.cantidad, 0);
+    const disponibles = ITEMS[itemKey].total - usedOnDate;
+    if (cant > disponibles) {
+      return fail(`Solo hay ${disponibles} ${ITEMS[itemKey].name} disponible(s) para el ${fmtFecha(fecha)}.`);
+    }
+
+    const reserva = {
+      id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      user: CURRENT_USER ? CURRENT_USER.user : 'anon',
+      item: itemKey, cantidad: cant, fecha, obs,
+      createdAt: new Date().toISOString()
+    };
+    RESERVAS.push(reserva);
+    saveResv(RESERVAS);
+    errEl.hidden = true;
+    okEl.textContent = `Reserva confirmada: ${cant} × ${ITEMS[itemKey].name} para el ${fmtFecha(fecha)}.`;
+    okEl.hidden = false;
+    document.getElementById('form-reserva').reset();
+    document.getElementById('f-fecha').min = todayISO();
+    refreshAll();
+    setTimeout(() => { okEl.hidden = true; }, 4000);
+
+    // Sync opcional al backend (silencioso si no hay PHP)
+    syncBackend('reservar', {
+      usuario: reserva.user, item: reserva.item, cantidad: reserva.cantidad,
+      fecha: reserva.fecha, observaciones: reserva.obs
+    });
+  }
+
+  function cancelResv(id) {
+    if (!confirm('¿Cancelar esta reserva?')) return;
+    const r = RESERVAS.find(x => x.id === id);
+    RESERVAS = RESERVAS.filter(r => r.id !== id);
+    saveResv(RESERVAS);
+    refreshAll();
+    if (r) syncBackend('cancelar', { id: r.id, usuario: r.user });
+  }
+
+  /* ── Sync opcional con procesar.php ── */
+  function syncBackend(action, data) {
+    if (location.protocol === 'file:') return; // no hay servidor cuando se abre como archivo
+    const fd = new FormData();
+    fd.append('action', action);
+    Object.entries(data).forEach(([k,v]) => fd.append(k, v));
+    fetch('procesar.php', { method: 'POST', body: fd })
+      .catch(() => {/* silencioso: el frontend ya guardó en localStorage */});
+  }
+
+  /* ── Gráfico de uso interactivo ── */
+  const CHART_DATA = {
+    todos:      { days: [12, 14, 17, 22, 11, 12, 17], peak: 'Jue · 22', label: 'pedidos' },
+    portatiles: { days: [4, 5, 7, 9, 5, 5, 7],        peak: 'Jue · 9',  label: 'pedidos' },
+    routers:    { days: [2, 3, 3, 4, 2, 1, 3],        peak: 'Jue · 4',  label: 'pedidos' },
+    proyectores:{ days: [3, 3, 4, 5, 2, 3, 4],        peak: 'Jue · 5',  label: 'pedidos' },
+    tallerA:    { days: [2, 2, 2, 3, 1, 1, 2],        peak: 'Jue · 3',  label: 'reservas' },
+    tallerB:    { days: [1, 1, 1, 1, 1, 2, 1],        peak: 'Sáb · 2',  label: 'reservas' }
+  };
+
+  function renderChart(key) {
+    const d = CHART_DATA[key];
+    const max = Math.max(...d.days);
+    const niceMax = Math.max(4, Math.ceil(max * 1.15));
+
+    // eje Y (5 niveles)
+    const y = document.getElementById('y-axis');
+    y.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+      const lbl = document.createElement('div');
+      lbl.textContent = Math.round((niceMax * i) / 4);
+      y.appendChild(lbl);
+    }
+
+    // columnas
+    const area = document.getElementById('chart-area');
+    area.innerHTML = '';
+    d.days.forEach((v, i) => {
+      const col = document.createElement('div');
+      col.className = 'chart-col';
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar' + (i === 6 ? ' today' : '');
+      bar.style.height = ((v / niceMax) * 100) + '%';
+      bar.innerHTML = `<span class="bar-val">${v}</span>`;
+      col.appendChild(bar);
+      area.appendChild(col);
+    });
+
+    // resumen
+    const total = d.days.reduce((a, b) => a + b, 0);
+    const today = d.days[6];
+    const yest = d.days[5];
+    const delta = yest ? Math.round(((today - yest) / yest) * 100) : 0;
+    const avg = Math.round(total / 7);
+    document.getElementById('sum-today').textContent = today;
+    document.getElementById('sum-week').textContent = total;
+    document.getElementById('sum-peak').textContent = d.peak;
+    document.getElementById('sum-avg').textContent = avg;
+
+    const deltaEl = document.querySelector('#sum-today').nextElementSibling;
+    if (deltaEl) {
+      deltaEl.textContent = (delta >= 0 ? '↗ +' : '↘ ') + delta + '% vs ayer';
+      deltaEl.classList.toggle('down', delta < 0);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('#chart-tabs .chart-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#chart-tabs .chart-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderChart(btn.dataset.item);
+      });
+    });
+    renderChart('todos');
+  });
+</script>
+</body>
+</html>
