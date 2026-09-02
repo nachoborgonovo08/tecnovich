@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 98%;
+    --foreground: 224 71% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
+    --primary: 244 71% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 224 71% 4%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 244 100% 96%;
+    --accent-foreground: 244 71% 40%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 244 71% 60%;
+    --radius: 12px;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 210 20% 98%;
+    --card: 224 55% 8%;
+    --card-foreground: 210 20% 98%;
+    --primary: 244 90% 68%;
+    --primary-foreground: 224 71% 4%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 244 60% 24%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62% 60%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 217 32% 20%;
+    --input: 217 32% 20%;
+    --ring: 244 90% 68%;
+  }
+
+  * { border-color: hsl(var(--border)); }
+  html, body { min-height: 100%; }
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Fondo animado del login */
+.auth-bg {
+  background: radial-gradient(circle at 20% 20%, hsl(244 90% 40% / 0.4), transparent 40%),
+              radial-gradient(circle at 80% 60%, hsl(280 90% 40% / 0.35), transparent 45%),
+              radial-gradient(circle at 50% 90%, hsl(220 90% 30% / 0.5), transparent 40%),
+              hsl(224 71% 4%);
+}
