@@ -1,8 +1,10 @@
-import { Boxes, Calendar, CircleAlert, PackageCheck } from "lucide-react";
+import Link from "next/link";
+import { Boxes, Calendar, CircleAlert, PackageCheck, ArrowRight } from "lucide-react";
 import { supabaseServer } from "@/lib/supabase-server";
 import { KpiCard } from "@/components/kpi-card";
 import { AlertBanner } from "@/components/alert-banner";
 import WeeklyReportCard from "@/components/ui/area-chart-1";
+import DotBorderButton from "@/components/ui/dot-border-button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { todayISO } from "@/lib/utils";
 import type { Material, Reserva } from "@/lib/types";
@@ -41,6 +43,21 @@ export default async function PanelPage() {
       </header>
 
       <AlertBanner items={lowStock} />
+
+      {/* CTA rápida — clic en cualquier lado navega a /reservas */}
+      <Link
+        href="/reservas"
+        aria-label="Ir a Nueva Reserva"
+        className="group relative block h-52 overflow-hidden rounded-2xl border bg-[#111318] transition-transform hover:-translate-y-0.5 hover:shadow-lg"
+      >
+        <div className="pointer-events-none absolute inset-0">
+          <DotBorderButton mode="dark" label="Nueva Reserva" />
+        </div>
+        <div className="pointer-events-none absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-sm">
+          Ir a Reservas
+          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+        </div>
+      </Link>
 
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <KpiCard label="Materiales Totales" value={totalUnits} sub={`${materiales.length} categorías`} Icon={Boxes} tone="primary" />

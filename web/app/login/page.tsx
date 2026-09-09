@@ -2,12 +2,11 @@
 
 import { Suspense, useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Sparkles } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase-client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import DotBorderButton from "@/components/ui/dot-border-button";
+import { CTASection } from "@/components/ui/hero-dithering-card";
 
 export default function LoginPageWrapper() {
   return (
@@ -54,26 +53,23 @@ function LoginPage() {
     });
   }
 
+  function scrollToForm() {
+    document.getElementById("login-email")?.focus();
+    document.getElementById("login-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
   return (
     <main className="auth-bg min-h-screen w-full grid lg:grid-cols-2">
-      {/* Panel izquierdo con el botón animado del prompt */}
-      <div className="hidden lg:flex flex-col items-center justify-center p-10 gap-8">
-        <div className="text-white/80 max-w-sm">
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest">
-            <Sparkles className="h-3 w-3" />
-            Tecnovich · Taller Integrador
-          </div>
-          <h1 className="text-5xl font-bold tracking-tight text-white">
-            Sistema de Reservas
-          </h1>
-          <p className="mt-3 text-white/70">
-            Gestión inteligente de materiales y talleres. Con estadísticas por día, semana y
-            alertas de bajo stock en tiempo real.
-          </p>
-        </div>
-        <div className="h-64 w-full max-w-md rounded-2xl overflow-hidden border border-white/10">
-          <DotBorderButton mode="dark" label="Start Creating" />
-        </div>
+      {/* Hero con dithering shader */}
+      <div className="hidden lg:flex items-center justify-center p-6">
+        <CTASection
+          eyebrow="Tecnovich · Taller Integrador"
+          headline="Reservas más simples,"
+          headlineDim="para toda la escuela."
+          description="Gestioná materiales y talleres desde un solo lugar. Estadísticas por día, alertas de bajo stock y control de disponibilidad en tiempo real."
+          ctaLabel="Empezar ahora"
+          onCtaClick={scrollToForm}
+        />
       </div>
 
       {/* Panel derecho: formulario */}
@@ -87,7 +83,7 @@ function LoginPage() {
             <p className="text-xs text-muted-foreground">Gestión de Materiales</p>
           </div>
 
-          <form onSubmit={submit} className="flex flex-col gap-3">
+          <form id="login-form" onSubmit={submit} className="flex flex-col gap-3">
             {mode === "signup" && (
               <>
                 <div className="grid gap-1.5">
@@ -109,7 +105,7 @@ function LoginPage() {
             )}
             <div className="grid gap-1.5">
               <Label>Email</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" required />
+              <Input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" required />
             </div>
             <div className="grid gap-1.5">
               <Label>Contraseña</Label>
